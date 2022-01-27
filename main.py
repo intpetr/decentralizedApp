@@ -74,6 +74,7 @@ def handleConnections():
 
             if message == "get nodes":
                 print("Sent all of my known ips to " + addr[0])
+                print("Current known connections ",myConnections)
                 connectionsinstring = "er"
                 c.send(getMyConnectionsData(addr[0]))
             elif message.split()[0] == "m_":
@@ -190,8 +191,8 @@ if __name__ == '__main__':
                     newConnections = pickle.loads(response)
 
 
-                except:
-                    print("Something went wrong")
+                except Exception as e:
+                    print("Something went wrong   ", e)
                 s.close()
 
         elif text == "send":
