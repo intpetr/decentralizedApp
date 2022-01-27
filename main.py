@@ -86,8 +86,8 @@ def handleConnections():
             c.close()
 
         except ConnectionAbortedError:
-            d = 3
-            # print("it was just a ping")
+
+            print("it was just a ping from", addr[0])
 
 
 def pingPort(ip, port):
@@ -125,7 +125,7 @@ def connect(ip):
         print("Successfully connected on the secondary port")
     else:
         try:
-            s.connect((ip, port))
+            s.connect((ip, ports[0]))
             mess = s.recv(1024).decode()
             print("Successfully connected on the default port")
 
@@ -140,19 +140,21 @@ def connect(ip):
                 mess = s.recv(1024).decode()
             except Exception as e:
                 print(e)
-                print("This ", ip, " is probably a wrong ip of it is offline")
+                print("This ", ip, " is probably a wrong ip or it is offline")
 
         # except socket.gaierror:
         #   print("Couldn't connect to ",ip," it is probably not a node")
 
 
 if __name__ == '__main__':
+
     s_print_lock = Lock()
 
     ports = [12346, 12348, 25525, 89786]
-    print(myConnections)
 
     # myConnections = ['127.0.0.1']
+
+    #  127.0.0.1
 
     # lock = Lock()
     # Process(target=f, args=(lock, "something lol")).start()
@@ -162,47 +164,51 @@ if __name__ == '__main__':
 
     myname = input("Enter a name >  ").split()[0]
     firstip = input("Enter the first ip to connect to")
+
     myConnections.append(firstip)
 
     startListening()
     time.sleep(4)
     # myConnections.append(firstip)
     sys.stdout.flush()
-    while True:
 
+    while True:
+        print(myConnections)
         text = input("What shall we tell the node?\n")
 
         port = 12346
 
         if text == "get nodes":
-            print("getting nodes")
+
             for ip in myConnections:
 
-                connect(ip)
-                s.send("get nodes".encode())
-                response = s.recv(1024)
-                print("the response from " + ip + "  is:")
                 try:
+                    connect(ip)
+                    s.send("get nodes".encode())
+                    response = s.recv(1024)
+                    print("the response from " + ip + "  is:")
                     newConnections = pickle.loads(response)
 
 
                 except:
-                    print("Something went wrong", response.decode())
+                    print("Something went wrong")
                 s.close()
 
         elif text == "send":
-            print("sending")
+
+            message = input("Type your message >  ")
             for ip in myConnections:
-                print("connecting")
-                connect(ip)
-                print("connected")
-                message = input("Type your message >  ")
-                ready = "m_ " + myname + " " + message
-                messageinbytes = ready.encode()
-                s.send(messageinbytes)
+                try:
+                    connect(ip)
+                    ready = "m_ " + myname + " " + message
+                    messageinbytes = ready.encode()
+                    s.send(messageinbytes)
+                except Exception as e:
+                    s.close()
+                    continue
+
                 s.close()
-
-
+                print("sent message to ", ip)
 
         newconnectionnumber = 0
         for address in newConnections:
@@ -210,4 +216,3 @@ if __name__ == '__main__':
                 myConnections.append(address)
                 newconnectionnumber = newconnectionnumber + 1
         print("Received ", newconnectionnumber)
-        newConnections = []
